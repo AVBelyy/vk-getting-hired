@@ -133,8 +133,6 @@ int main(int argc, char ** argv) {
             prev_start = i + 1;
         }
     }
-    // Insert last line.
-    htable_insert(prev_start, num_of_bytes - prev_start);
 
     // Ready to accept requests.
     char * req_buf = malloc(MAX_REQUEST_SIZE);
