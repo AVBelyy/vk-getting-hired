@@ -12,8 +12,6 @@
  * This implementation is very memory-efficient, requiring only 16N + O(1) bytes of "real" memory (which can be
  * smaller than the size of database!), sacrificing however for request processing speed, which is O(req_size) in most
  * cases, but may be up to O(db_size) due to hash collision.
- * 
- * See strsearch.trie.c for less memory-efficient, but guaranteed O(req_size) processing time solution.
  */
 
 #include <unistd.h>
