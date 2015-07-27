@@ -1,4 +1,5 @@
-run
+bsearch
+strsearch
 dict.txt
 *.swp
 *.o
