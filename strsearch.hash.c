@@ -45,14 +45,15 @@ char * dict;
 htable_entry_t * htable;
 collision_list_t * clist;
 size_t num_of_bytes, num_of_lines;
+size_t num_of_buckets;
 int clist_size = 1;
 
 uint32_t hasher(char * s, int len) {
     uint32_t hash = 5381;
     for (int i = 0; i < len; i++) {
-        hash = (hash << 5) + hash + s[i];
+        hash = ((hash << 5) + hash) + (s[i] - 32);
     }
-    return hash % num_of_lines;
+    return hash % num_of_buckets;
 }
 
 void htable_insert(int fpos, size_t len) {
@@ -121,7 +122,8 @@ int main(int argc, char ** argv) {
     num_of_lines++;
 
     // Initialize htable and clist.
-    htable = calloc(num_of_lines, sizeof(htable_entry_t));
+    num_of_buckets = num_of_lines;
+    htable = calloc(num_of_buckets, sizeof(htable_entry_t));
     // We enumerate elements of clist from 1 so that htable[hash].first == 0 would mean that no values with hash `hash` are present.
     clist = calloc(num_of_lines + 1, sizeof(collision_list_t));
 
