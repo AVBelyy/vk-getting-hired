@@ -6,10 +6,9 @@
  * "hot" parts of database into memory when needed, and also making it possible to modify database on the fly.
  *
  * Hash table is represented as `htable` array of size N (N = number of lines in db), where each element either points
- * to the beginning of a single-linked list or is equal to zero. Lists are stored in pre-allocated array `clist` of size N.
- * To support O(1) insertion we also store pointer to the end of a single-linked list.
+ * to the end of a single-linked list or is equal to zero. Lists are stored in pre-allocated array `clist` of size N.
  *
- * This implementation is very memory-efficient, requiring only 16N + O(1) bytes of "real" memory (which can be
+ * This implementation is very memory-efficient, requiring only 12N + O(1) bytes of "real" memory (which can be
  * smaller than the size of database!), sacrificing however for request processing speed, which is O(req_size) in most
  * cases, but may be up to O(db_size) due to hash collision.
  */
@@ -27,13 +26,12 @@
 #define MAX_REQUEST_SIZE (128 * 1024 * 1024 + 2)
 
 struct htable_entry {
-    uint32_t first;
     uint32_t last;
 };
 
 struct collision_list {
     uint32_t fpos;
-    uint32_t next;
+    uint32_t prev;
 };
 
 typedef struct htable_entry htable_entry_t;
@@ -57,20 +55,14 @@ uint32_t hasher(char * s, int len) {
 void htable_insert(int fpos, size_t len) {
     uint32_t hash = hasher(dict + fpos, len);
     clist[clist_size].fpos = fpos;
-    if (htable[hash].first == 0) {
-        // No collisions with previous lines.
-        htable[hash].first = clist_size;
-    } else {
-        // Collision detected.
-        clist[htable[hash].last].next = clist_size;
-    }
+    clist[clist_size].prev = htable[hash].last;
     htable[hash].last = clist_size;
     ++clist_size;
 }
 
 int htable_lookup(char * s, size_t len) {
     uint32_t hash = hasher(s, len);
-    uint32_t pos = htable[hash].first;
+    uint32_t pos = htable[hash].last;
     if (pos == 0) {
         // Definitely not present.
         return 0;
@@ -82,7 +74,7 @@ int htable_lookup(char * s, size_t len) {
                 // Totally present.
                 return 1;
             }
-            pos = clist[pos].next;
+            pos = clist[pos].prev;
         } while (pos != 0);
         // That was just a collision...
         return 0;
@@ -122,7 +114,7 @@ int main(int argc, char ** argv) {
     // Initialize htable and clist.
     num_of_buckets = num_of_lines;
     htable = calloc(num_of_buckets, sizeof(htable_entry_t));
-    // We enumerate elements of clist from 1 so that htable[hash].first == 0 would mean that no values with hash `hash` are present.
+    // We enumerate elements of clist from 1 so that htable[hash].last == 0 would mean that no values with hash `hash` are present.
     clist = calloc(num_of_lines + 1, sizeof(collision_list_t));
 
     int prev_start = 0;
