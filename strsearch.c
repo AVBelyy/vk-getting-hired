@@ -44,13 +44,13 @@ typedef struct htable_entry htable_entry_t;
 typedef struct collision_list collision_list_t;
 typedef struct compr_collision_list compr_collision_list_t;
 
-char * dict;
-htable_entry_t * htable;
-collision_list_t * clist;
-compr_collision_list_t * cclist;
-size_t num_of_bytes, num_of_lines;
-size_t num_of_buckets;
-int clist_size = 1;
+static char * dict;
+static htable_entry_t * htable;
+static collision_list_t * clist;
+static compr_collision_list_t * cclist;
+static size_t num_of_bytes, num_of_lines;
+static size_t num_of_buckets;
+static int clist_size = 1;
 
 static uint32_t hasher(char * s, size_t len) {
     uint32_t hash = 5381;
