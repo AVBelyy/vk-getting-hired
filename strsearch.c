@@ -8,7 +8,7 @@
  * Hash table is represented as `htable` array of size N (N = number of lines in db), where each element either points
  * to the end of a single-linked list or is equal to zero. Lists are stored in pre-allocated array `clist` of size N.
  *
- * This implementation is very memory-efficient, requiring only 12N + O(1) bytes of "real" memory (which can be
+ * This implementation is very memory-efficient, requiring only 16N + O(1) bytes of "real" memory (which can be
  * smaller than the size of database!), sacrificing however for request processing speed, which is O(req_size) in most
  * cases, but may be up to O(db_size) due to hash collision.
  */
@@ -32,6 +32,7 @@ struct htable_entry {
 struct collision_list {
     uint32_t fpos;
     uint32_t prev;
+    uint32_t len;
 };
 
 typedef struct htable_entry htable_entry_t;
@@ -56,6 +57,7 @@ void htable_insert(size_t fpos, size_t len) {
     uint32_t hash = hasher(dict + fpos, len);
     clist[clist_size].fpos = fpos;
     clist[clist_size].prev = htable[hash].last;
+    clist[clist_size].len = len;
     htable[hash].last = clist_size;
     ++clist_size;
 }
@@ -70,7 +72,7 @@ int htable_lookup(char * s, size_t len) {
         // Maybe present, maybe not. Traverse clist to find out.
         do {
             size_t fpos = clist[pos].fpos;
-            if (!memcmp(s, dict + fpos, len)) {
+            if (clist[pos].len == len && !memcmp(s, dict + fpos, len)) {
                 // Totally present.
                 return 1;
             }
