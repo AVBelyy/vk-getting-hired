@@ -52,7 +52,7 @@ size_t num_of_bytes, num_of_lines;
 size_t num_of_buckets;
 int clist_size = 1;
 
-uint32_t hasher(char * s, size_t len) {
+static uint32_t hasher(char * s, size_t len) {
     uint32_t hash = 5381;
     for (size_t i = 0; i < len; i++) {
         hash = ((hash << 5) + hash) + (s[i] - 32);
@@ -60,7 +60,7 @@ uint32_t hasher(char * s, size_t len) {
     return hash % num_of_buckets;
 }
 
-void htable_insert(size_t fpos, size_t len) {
+static void htable_insert(size_t fpos, size_t len) {
     uint32_t hash = hasher(dict + fpos, len);
     clist[clist_size].fpos = fpos;
     clist[clist_size].len = len;
@@ -69,7 +69,7 @@ void htable_insert(size_t fpos, size_t len) {
     ++clist_size;
 }
 
-int htable_lookup(char * s, size_t len) {
+static int htable_lookup(char * s, size_t len) {
     uint32_t hash = hasher(s, len);
     uint32_t ptr = htable[hash].ptr;
     uint32_t nextptr = htable[hash + 1].ptr;
