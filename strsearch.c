@@ -44,15 +44,15 @@ size_t num_of_bytes, num_of_lines;
 size_t num_of_buckets;
 int clist_size = 1;
 
-uint32_t hasher(char * s, int len) {
+uint32_t hasher(char * s, size_t len) {
     uint32_t hash = 5381;
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         hash = ((hash << 5) + hash) + (s[i] - 32);
     }
     return hash % num_of_buckets;
 }
 
-void htable_insert(int fpos, size_t len) {
+void htable_insert(size_t fpos, size_t len) {
     uint32_t hash = hasher(dict + fpos, len);
     clist[clist_size].fpos = fpos;
     clist[clist_size].prev = htable[hash].last;
@@ -117,7 +117,7 @@ int main(int argc, char ** argv) {
     // We enumerate elements of clist from 1 so that htable[hash].last == 0 would mean that no values with hash `hash` are present.
     clist = calloc(num_of_lines + 1, sizeof(collision_list_t));
 
-    int prev_start = 0;
+    size_t prev_start = 0;
     for (size_t i = 0; i < num_of_bytes; i++) {
         if (dict[i] == '\n') {
             // Add line to htable and clist.
@@ -132,7 +132,7 @@ int main(int argc, char ** argv) {
     while (!feof(stdin)) {
         // Read request.
         fgets(req_buf, MAX_REQUEST_SIZE, stdin);
-        int len = strlen(req_buf);
+        size_t len = strlen(req_buf);
         // Exit on "exit" command.
         if (!strncmp(req_buf, "exit\n", len)) {
             break;
